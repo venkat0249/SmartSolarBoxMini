@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<!-- <meta name="viewport" content="width=700px, initial-scale=1"> -->
+	<link rel= "stylesheet" type= "text/css" href= "style.css">
+    <script src="jquery-3.3.1.min.js"></script>
+    <!-- <script type="text/javascript" src="{{url_for('static', filename='socket.io.min.js')}}"></script> -->
+	
+    <script>
+        $(document).ready(function(){
+
+//    });
+//######## animations ##########
+fps=5; //control variable for animation speed
+ //initialize vars for power flow
+var solarFlowStatus= false;
+var batInFlowStatus= false;
+var batOutFlowStatus= false;
+var loadFlowStatus=false;
+var stopSolarFlow= false;
+var stopbatInFlow= false;
+var stopbatOutFlow= false;
+var stoploadFlow=false;
+//var elem = document.getElementById('text_sv');
+var svg_var = document.getElementById("ssb_svg");
+//var ssbSvgDoc = svg_var.contentDocument;
+
+            // It's important to add an load event listener to the object,
+            // as it will load the svg doc asynchronously
+//$('#ssb_svg').load(function () {
+svg_var.addEventListener("load",function(){
+var ssbSvgDoc = svg_var.contentDocument;
+
+function myFunction() { setTimeout(function(){
+var elem = ssbSvgDoc.getElementById('text_sv');
+elem.innerHTML=Math.random() * 10.2+"V ";
+//elem['innerText' in elem ? "innerText" : "textContent"] = Math.floor(Math.random() * 10.2)+"V ";
+requestAnimationFrame(myFunction);
+ }, 1000/fps)
+}
+//solar flow
+var c_s1 = ssbSvgDoc.getElementById('circle_s1');
+var c_s2 = ssbSvgDoc.getElementById('circle_s2');
+var c_s3 = ssbSvgDoc.getElementById('circle_s3');
+var c_s4 = ssbSvgDoc.getElementById('circle_s4');
+
+var c_l1 = ssbSvgDoc.getElementById('circle_l1');
+var c_l2 = ssbSvgDoc.getElementById('circle_l2');
+var c_l3 = ssbSvgDoc.getElementById('circle_l3');
+var c_l4 = ssbSvgDoc.getElementById('circle_l4');
+
+var c_b1 = ssbSvgDoc.getElementById('circle_b1');
+var c_b2 = ssbSvgDoc.getElementById('circle_b2');
+var c_b3 = ssbSvgDoc.getElementById('circle_b3');
+var c_b4 = ssbSvgDoc.getElementById('circle_b4');
+
+var bulb_glow = ssbSvgDoc.getElementById('g_bulb_glow');
+//hide midcircle for now
+var c_mid = ssbSvgDoc.getElementById('circle_mid');
+c_mid.style.display = "none";
+c_s1.style.display = "none";
+c_s2.style.display = "none";
+c_s3.style.display = "none";
+c_s4.style.display = "none";
+c_l1.style.display = "none";
+c_l2.style.display = "none";
+c_l3.style.display = "none";
+c_l4.style.display = "none";
+c_b1.style.display = "none";
+c_b2.style.display = "none";
+c_b3.style.display = "none";
+c_b4.style.display = "none";
+bulb_glow.style.display = "none";
+
+i=0; j=0;k=0;m=0;
+//animate solar flow
+function animateSolarPowerFlow() { setTimeout(function(){
+
+
+if(i>4){i=0; }
+if(i==0)
+{
+c_s1.style.display = "block";
+c_s2.style.display = "block";
+c_s3.style.display = "none";
+c_s4.style.display = "none";
+}
+if(i==1)
+{
+c_s2.style.display = "block";
+c_s1.style.display = "none";
+c_s3.style.display = "block";
+c_s4.style.display = "none";
+}
+if(i==2)
+{
+c_s3.style.display = "block";
+c_s1.style.display = "none";
+c_s2.style.display = "none";
+c_s4.style.display = "block";
+}
+if(i==3)
+{
+c_s4.style.display = "block";
+c_s1.style.display = "none";
+c_s2.style.display = "none";
+c_s3.style.display = "none";
+}
+if(i==4)
+{
+c_s4.style.display = "none";
+c_s1.style.display = "none";
+c_s2.style.display = "none";
+c_s3.style.display = "none";
+}
+i++;
+if(!stopSolarFlow)
+solarPowerFlowRef=requestAnimationFrame(animateSolarPowerFlow);
+else
+{
+//stop animation and reset
+stopSolarFlow=false;
+c_s4.style.display = "none";
+c_s1.style.display = "none";
+c_s2.style.display = "none";
+c_s3.style.display = "none";
+}
+
+
+ }, 1000/fps)
+}
+//function for animating battery inward power flow
+function animateBatInPowerFlow() { setTimeout(function(){
+if(k>4){k=0; }
+if(k==0)
+{
+c_b1.style.display = "block";
+c_b2.style.display = "block";
+c_b3.style.display = "none";
+c_b4.style.display = "none";
+}
+if(k==1)
+{
+c_b2.style.display = "block";
+c_b1.style.display = "none";
+c_b3.style.display = "block";
+c_b4.style.display = "none";
+}
+if(k==2)
+{
+c_b3.style.display = "block";
+c_b1.style.display = "none";
+c_b2.style.display = "none";
+c_b4.style.display = "block";
+}
+if(k==3)
+{
+c_b4.style.display = "block";
+c_b1.style.display = "none";
+c_b2.style.display = "none";
+c_b3.style.display = "none";
+}
+if(k==4)
+{
+c_b4.style.display = "none";
+c_b1.style.display = "none";
+c_b2.style.display = "none";
+c_b3.style.display = "none";
+}
+k++;
+if(!stopbatInFlow)
+requestAnimationFrame(animateBatInPowerFlow);
+else
+{
+stopbatInFlow=false
+c_b4.style.display = "none";
+c_b1.style.display = "none";
+c_b2.style.display = "none";
+c_b3.style.display = "none";
+}
+ }, 1000/fps)
+}
+
+//function for animating battery outward power flow
+function animateBatOutPowerFlow() { setTimeout(function(){
+if(m>4){m=0; }
+if(m==0)
+{
+c_b1.style.display = "none";
+c_b2.style.display = "none";
+c_b3.style.display = "block";
+c_b4.style.display = "block";
+}
+if(m==1)
+{
+c_b2.style.display = "block";
+c_b1.style.display = "none";
+c_b3.style.display = "block";
+c_b4.style.display = "none";
+}
+if(m==2)
+{
+c_b3.style.display = "none";
+c_b1.style.display = "block";
+c_b2.style.display = "block";
+c_b4.style.display = "none";
+}
+if(m==3)
+{
+c_b4.style.display = "none";
+c_b1.style.display = "block";
+c_b2.style.display = "none";
+c_b3.style.display = "none";
+}
+if(m==4)
+{
+c_b4.style.display = "none";
+c_b1.style.display = "none";
+c_b2.style.display = "none";
+c_b3.style.display = "none";
+}
+m++;
+
+if(!stopbatOutFlow)
+requestAnimationFrame(animateBatOutPowerFlow);
+else
+{
+stopbatOutFlow=false
+c_b4.style.display = "none";
+c_b1.style.display = "none";
+c_b2.style.display = "none";
+c_b3.style.display = "none";
+}
+ }, 1000/fps)
+ 
+}
+
+//animate load power flow
+function animateLoadPowerFlow() { setTimeout(function(){
+if(j>4){j=0; }
+if(j==0)
+{
+c_l1.style.display = "block";
+c_l2.style.display = "block";
+c_l3.style.display = "none";
+c_l4.style.display = "none";
+}
+if(j==1)
+{
+c_l2.style.display = "block";
+c_l1.style.display = "none";
+c_l3.style.display = "block";
+c_l4.style.display = "none";
+}
+if(j==2)
+{
+c_l3.style.display = "block";
+c_l1.style.display = "none";
+c_l2.style.display = "none";
+c_l4.style.display = "block";
+}
+if(j==3)
+{
+c_l4.style.display = "block";
+c_l1.style.display = "none";
+c_l2.style.display = "none";
+c_l3.style.display = "none";
+}
+if(j==4)
+{
+c_l4.style.display = "none";
+c_l1.style.display = "none";
+c_l2.style.display = "none";
+c_l3.style.display = "none";
+}
+j++;
+if(!stoploadFlow)
+requestAnimationFrame(animateLoadPowerFlow);
+else
+{
+stoploadFlow=false
+c_l4.style.display = "none";
+c_l1.style.display = "none";
+c_l2.style.display = "none";
+c_l3.style.display = "none";
+}
+
+ }, 1000/fps)
+ 
+}
+
+var gateway = `ws://${window.location.hostname}/ws`;
+var websocket;
+
+var direction;
+    console.log('Trying to open a WebSocket connection…');
+    websocket = new WebSocket(gateway);
+    websocket.onopen = onOpen;
+    websocket.onclose = onClose;
+    websocket.onmessage = onMessage;
+function onOpen(event) {
+    console.log('Connection opened');
+}
+
+function onClose(event) {
+    console.log('Connection closed');
+    document.getElementById("motor-state").innerHTML = "motor stopped"
+    setTimeout(initWebSocket, 2000);
+}
+
+
+    //connect to the socket server.
+    //var socket = io.connect('http://' + document.domain + ':' + location.port);
+    //var numbers_received = [];
+	var loadswitch = document.getElementById('toggleswitch');
+
+    //socket.emit('subscribe',topic='boxt/topic') //will be received by flask's "@iosocket.on('subscribe')"
+
+    //receive details from server
+
+    //socket.on('mqtt_message', function(msg) {
+	//alert(msg.payload);
+	//var pos = document.getElementById('log');
+	//pos.innerHTML = '<p>' + msg.payload + '</p>';
+  function onMessage(event) {
+    console.log(event.data);
+        //console.log("New mqtt message: " + msg.payload);
+        var status_obj = JSON.parse(event.data);
+		ssbSvgDoc.getElementById("text_sa").innerHTML = status_obj.sa+"A";
+		ssbSvgDoc.getElementById("text_sv").innerHTML = status_obj.sv+"V";
+		ssbSvgDoc.getElementById("text_sp").innerHTML = status_obj.sp+"w";
+		ssbSvgDoc.getElementById("text_ba").innerHTML = status_obj.ba+"A";
+		ssbSvgDoc.getElementById("text_bv").innerHTML = status_obj.bv+"V";
+		ssbSvgDoc.getElementById("text_bc").innerHTML = status_obj.bs+"w";
+		ssbSvgDoc.getElementById("text_la").innerHTML = status_obj.la+"A";
+		ssbSvgDoc.getElementById("text_lv").innerHTML = status_obj.lv+"V";
+		ssbSvgDoc.getElementById("text_lp").innerHTML = status_obj.lp+"w";
+		//document.getElementById("Gen_Total_val").innerHTML = status_obj.Gen_Total+"kwh";
+		//document.getElementById("Con_Total_val").innerHTML = status_obj.Consump_Total+"kwh";
+		ssbSvgDoc.getElementById("text_temp").innerHTML = status_obj.temp;
+		
+		solarAmps=parseFloat(status_obj.sa)
+		batAmps=parseFloat(status_obj.ba)
+		loadAmps=parseFloat(status_obj.la)
+		if(solarAmps>0)
+		{
+			if(!solarFlowStatus)
+			{
+			//start solar flow animation
+				requestAnimationFrame(animateSolarPowerFlow);
+				solarFlowStatus=true; }
+				
+		}
+		else
+				{
+			if(solarFlowStatus){
+			//stop solar flow animation
+			stopSolarFlow=true;
+			solarFlowStatus=false;}
+		}
+		
+		if(loadAmps>0)
+		{
+			if(!loadFlowStatus)
+			{
+			//start solar flow animation
+				requestAnimationFrame(animateLoadPowerFlow);
+				loadFlowStatus=true; }
+				
+		}
+		else
+				{
+			if(loadFlowStatus){
+			stoploadFlow=true;
+			loadFlowStatus=false;}
+		}
+		
+		if(batAmps>0)
+		{
+			if(!batInFlowStatus)
+			{
+			//start solar flow animation
+				requestAnimationFrame(animateBatInPowerFlow);
+				if(batOutFlowStatus){
+				stopbatOutFlow=true;
+				batOutFlowStatus=false;}
+				batInFlowStatus=true; }
+				
+		}
+		else if(batAmps<0)
+				{
+			if(!batOutFlowStatus){
+			requestAnimationFrame(animateBatOutPowerFlow);
+			batOutFlowStatus=true;
+			if(batInFlowStatus){
+			stopbatInFlow=true;
+			batInFlowStatus=false;}}
+		}
+		else
+		{
+		if(batInFlowStatus)
+		stopbatInFlow=true;
+		if(batOutFlowStatus)
+		stopbatOutFlow=true;
+		batInFlowStatus=false;
+		batOutFlowStatus=false;
+		}
+		
+		
+		if(status_obj.switch_status=="1")
+		{
+		loadswitch.checked=true;
+		bulb_glow.style.display = "block";
+		}
+		else if(status_obj.switch_status=="0")
+		{
+		loadswitch.checked=false;
+		bulb_glow.style.display = "none";
+		}
+    }
+
+		
+	});
+
+});
+</script>
+
+</head>
+<body>
+
+
+<div class="page-content">
+
+<!-- <img src="solarboxlogo_header" width="700" height="100"></img> -->
+<h1 >Smart Solar Box Mini</h1>
+
+<object type="image/svg+xml" id="ssb_svg" data="ssb_dashboard_final_v1.svg"></object>
+
+<div class="cards2"> 
+    <div class="card temperature">
+    <p>Switch<strong> %STATE%</strong></p>
+  <p>
+    <a href="/on"><button class="button">ON</button></a>
+    <a href="/off"><button class="button button2">OFF</button></a>
+  </p>
+   </div>
+  </div>
+<!-- <div>
+  <div class="info-tile" id="tile1" style = "background: #d1d1d1;">
+   <span class = "info-tile-large-text" id="Gen_Total_val"> Wh</span>
+    <br />
+   <span class = "info-tile-small-text">Generation</span> 
+  </div>
+  
+  <div class="info-tile" id="tile2" style = "background: #d1d1d1;">
+   
+   <span class = "info-tile-large-text" id="Con_Total_val"> Wh</span>    <br />
+      <span class = "info-tile-small-text">Consumption</span> 
+  </div>
+  
+  <div class="info-tile" id="tile1" style = "background: #d1d1d1;">
+	<label class="toggle">
+		<input id="toggleswitch" type="checkbox">
+		<span class="roundbutton"></span>  <br />
+	</label>
+	<span class = "info-tile-small-text">Load Switch</span>
+  </div>
+</div> -->
+
+ <div class="info-header-tile" id="tile1" style = "background: #0b58b3;">
+   <span class = "info-tile-large-text">Powered by fortiss</span></div>
+</div>
+
+</body>
+</html>
